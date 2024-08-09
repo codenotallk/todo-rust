@@ -1,3 +1,3 @@
 pub trait DisplayMessage: 'static {
-    fn show (&self, message: String);
+    fn show(&self, message: String);
 }

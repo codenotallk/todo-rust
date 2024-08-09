@@ -15,47 +15,40 @@ lazy_static::lazy_static! {
 }
 
 impl Task {
-
-    pub fn new (name: &str, description: &str) -> Result<Self, &'static str> {
-
+    pub fn new(name: &str, description: &str) -> Result<Self, &'static str> {
         if check_string(name) && check_string(description) {
-
-            let mut dynamic_id  = DYNAMIC_ID.lock().unwrap();
+            let mut dynamic_id = DYNAMIC_ID.lock().unwrap();
             *dynamic_id += 1;
 
-            Ok (Self {
+            Ok(Self {
                 id: *dynamic_id,
                 name: name.to_owned(),
                 description: description.to_owned(),
                 done: false,
             })
         } else {
-            Err ("Cannot create a Task")
+            Err("Cannot create a Task")
         }
     }
 
-    pub fn update (&mut self, name: &str, description: &str) -> Result <(), &'static str> {
+    pub fn update(&mut self, name: &str, description: &str) -> Result<(), &'static str> {
         if check_string(name) && check_string(description) {
-
             self.name = name.to_owned();
             self.description = description.to_owned();
             self.done = false;
 
             Ok(())
         } else {
-            Err ("Cannot update the Task")
+            Err("Cannot update the Task")
         }
     }
 
-    pub fn set_done (&mut self, done: bool) {
+    pub fn set_done(&mut self, done: bool) {
         self.done = done;
     }
-
-
 }
 
-fn check_string (field: &str) -> bool {
-
+fn check_string(field: &str) -> bool {
     if field.trim().is_empty() {
         return false;
     }
@@ -63,7 +56,7 @@ fn check_string (field: &str) -> bool {
     true
 }
 
-pub fn set_counter (max_id: u32) {
-    let mut dynamic_id  = DYNAMIC_ID.lock().unwrap();
-        *dynamic_id += max_id;
+pub fn set_counter(max_id: u32) {
+    let mut dynamic_id = DYNAMIC_ID.lock().unwrap();
+    *dynamic_id += max_id;
 }

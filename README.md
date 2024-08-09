@@ -29,3 +29,7 @@ In C version I used color to express error. HEre we already have a crate for tha
 
 It was a long journey but we finished the basics.
 Now we can do some improvements. Bye.
+
+I used a simple way to do some stuff. Now I'll refactor to use the Rust resources.
+
+These were the modification. Next will be tests and split in crates.

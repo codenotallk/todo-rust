@@ -4,29 +4,32 @@ use display::DisplayMessage;
 use prompt::Prompt;
 use reader::Reader;
 
-mod task;
-mod task_manager;
-mod display;
+mod action_args;
 mod action_manager;
+mod display;
+mod menu;
 mod prompt;
 mod reader;
-mod menu;
+mod task;
+mod task_manager;
 
 #[derive(Clone)]
 struct App;
 
 impl DisplayMessage for App {
-    fn show (&self, message: String) {
+    fn show(&self, message: String) {
         print!("{}", message);
         io::stdout().flush().unwrap();
     }
 }
 
 impl Reader for App {
-    fn read (&mut self) -> String {
-        let mut input = String::new ();
+    fn read(&mut self) -> String {
+        let mut input = String::new();
 
-        io::stdin().read_line(&mut input).expect("Failed to read line");
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Failed to read line");
 
         let input = input.replace("\n", "").to_owned();
         input
