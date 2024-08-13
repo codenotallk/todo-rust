@@ -7,7 +7,7 @@ use crate::{
     action_manager::ActionManger,
     display::DisplayMessage,
     menu::{menu_logo, menu_show},
-    reader::Reader,
+    reader::Reader, translation::Translation,
 };
 
 type CommandHandler = fn(&mut Prompt);
@@ -19,6 +19,7 @@ pub struct Prompt {
     action_manager: ActionManger,
     run: bool,
     modifications: bool,
+    translation: Translation,
 }
 
 enum Style {
@@ -37,6 +38,7 @@ impl Prompt {
             run: true,
             action_manager: ActionManger::new(),
             modifications: false,
+            translation: Translation::new(),
         }
     }
 
@@ -66,10 +68,7 @@ impl Prompt {
 
             let command = self.read_command();
 
-            match self.process_command(command.as_str()) {
-                Ok(_) => {}
-                Err(err) => self.print(err, Style::Error),
-            }
+            self.process_command(command.as_str());
         }
     }
 
@@ -85,51 +84,50 @@ impl Prompt {
         self.read().to_lowercase()
     }
 
-    fn process_command(&mut self, command: &str) -> Result<(), &'static str> {
+    fn process_command(&mut self, command: &str){
         match self.commands.get(&command) {
             Some(f) => {
                 f(self);
-                Ok(())
             }
-            None => Err("Command not found.\n\n"),
+            None => self.print (self.translation.get_message("error.command").as_str(), Style::Error),
         }
     }
 
     fn command_add(&mut self) {
         let args = self.get_args().with_command("add").build();
 
-        if self.wanna_proceed("You are about to add a new task. Are you sure? (yes/no): ") == true {
+        if self.wanna_proceed(self.translation.get_message("question.task.add").as_str()) == true {
             if self.action_manager.process(args, &*self.display) == true {
                 self.modifications = true;
-                self.print("New Task add successfully.\n\n", Style::Success);
+                self.print(self.translation.get_message("success.task.add").as_str(), Style::Success);
             }
         }
     }
 
-    fn wanna_proceed(&mut self, message: &'static str) -> bool {
+    fn wanna_proceed(&mut self, message: &str) -> bool {
         loop {
             self.print(message, Style::Default);
 
             let input = self.read();
 
-            match input.as_str() {
+            match input.as_str() {                
                 "yes" => return true,
                 "no" => {
-                    self.print("Canceled.\n\n", Style::Error);
+                    self.print(self.translation.get_message("error.canceled").as_str(), Style::Error);
                     return false;
                 }
                 _ => {
-                    self.print("Invalid option.\n", Style::Error);
+                    self.print(self.translation.get_message("error.option").as_str(), Style::Error);
                 }
             }
         }
     }
 
     fn get_args(&mut self) -> ActionArgsBuilder {
-        self.print("Type the task name: ", Style::Default);
+        self.print(self.translation.get_message("task.name").as_str(), Style::Default);
         let name = self.read();
 
-        self.print("Type the task description: ", Style::Default);
+        self.print(self.translation.get_message("task.description").as_str(), Style::Default);
         let description = self.read();
 
         ActionArgsBuilder::new()
@@ -144,19 +142,19 @@ impl Prompt {
     }
 
     fn command_remove(&mut self) {
-        match self.ask_id("Type the task id to delete or exit to cancel: ") {
+        match self.ask_id(self.translation.get_message("id.remove").as_str()) {
             Some(id) => {
                 let args = ActionArgsBuilder::new()
                     .with_command("remove")
                     .with_first(id)
                     .build();
 
-                if self.wanna_proceed("Would you like to remove? (yes/no): ") == true {
+                if self.wanna_proceed(self.translation.get_message("question.task.remove").as_str()) == true {
                     if self.action_manager.process(args, &*self.display) == true {
-                        self.print("Task removed successfully.\n\n", Style::Success);
+                        self.print(self.translation.get_message("success.task.remove").as_str(), Style::Success);
                         self.modifications = true;
                     } else {
-                        self.print("Couldn't remove the task.\n\n", Style::Error);
+                        self.print(self.translation.get_message("error.task.remove").as_str(), Style::Error);
                     }
                 }
             }
@@ -164,7 +162,7 @@ impl Prompt {
         }
     }
 
-    fn ask_id(&mut self, message: &'static str) -> Option<String> {
+    fn ask_id(&mut self, message: &str) -> Option<String> {
         loop {
             self.print(message, Style::Default);
 
@@ -172,7 +170,7 @@ impl Prompt {
 
             match input.as_str() {
                 "exit" => {
-                    self.print("Canceled.\n\n", Style::Error);
+                    self.print(self.translation.get_message("error.canceled").as_str(), Style::Error);
                     return None;
                 }
 
@@ -180,14 +178,14 @@ impl Prompt {
                     true => {
                         return Some(input);
                     }
-                    false => self.print("Is not a number.\n\n", Style::Error),
+                    false => self.print(self.translation.get_message("error.task.id").as_str(), Style::Error),
                 },
             }
         }
     }
 
     fn command_update(&mut self) {
-        match self.ask_id("Type the task id to update or exit to cancel: ") {
+        match self.ask_id(self.translation.get_message("id.update").as_str()) {
             Some(id) => {
                 let args = self
                     .get_args()
@@ -195,12 +193,12 @@ impl Prompt {
                     .with_third(id)
                     .build();
 
-                if self.wanna_proceed("Would you like to update? (yes/no): ") == true {
+                if self.wanna_proceed(self.translation.get_message("question.task.update").as_str()) == true {
                     if self.action_manager.process(args, &*self.display) == true {
-                        self.print("Task update successfully.\n\n", Style::Success);
+                        self.print(self.translation.get_message("success.task.update").as_str(), Style::Success);
                         self.modifications = true;
                     } else {
-                        self.print("Couldn't update the task.\n\n", Style::Error);
+                        self.print(self.translation.get_message("error.task.update").as_str(), Style::Error);
                     }
                 }
             }
@@ -209,19 +207,19 @@ impl Prompt {
     }
 
     fn command_complete(&mut self) {
-        match self.ask_id("Type the task id to complete or exit to cancel: ") {
+        match self.ask_id(self.translation.get_message("id.complete").as_str()) {
             Some(id) => {
                 let args = ActionArgsBuilder::new()
                     .with_command("complete")
                     .with_first(id)
                     .build();
 
-                if self.wanna_proceed("Would you like to complete? (yes/no): ") == true {
+                if self.wanna_proceed(self.translation.get_message("question.task.complete").as_str()) == true {
                     if self.action_manager.process(args, &*self.display) == true {
-                        self.print("Task completed successfully.\n\n", Style::Success);
+                        self.print(self.translation.get_message("success.task.complete").as_str(), Style::Success);
                         self.modifications = true;
                     } else {
-                        self.print("Couldn't complete the task.\n\n", Style::Error);
+                        self.print(self.translation.get_message("error.task.complete").as_str(), Style::Error);
                     }
                 }
             }
@@ -231,7 +229,7 @@ impl Prompt {
 
     fn command_save(&mut self) {
         if self.modifications == true
-            && self.wanna_proceed("Would you like to overwrite? (yes/no): ") == true
+            && self.wanna_proceed(self.translation.get_message("question.overwrite").as_str()) == true
         {
             let args = ActionArgs::new("save");
 
@@ -244,7 +242,7 @@ impl Prompt {
     fn command_exit(&mut self) {
         if self.modifications == false {
             self.run = false;
-        } else if self.wanna_proceed("You have modifications. Do you wann quit anyway? (yes/no): ")
+        } else if self.wanna_proceed(self.translation.get_message("question.modification").as_str())
             == true
         {
             self.run = false;

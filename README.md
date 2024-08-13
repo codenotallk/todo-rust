@@ -33,3 +33,13 @@ Now we can do some improvements. Bye.
 I used a simple way to do some stuff. Now I'll refactor to use the Rust resources.
 
 These were the modification. Next will be tests and split in crates.
+
+---------------------------------------------------------------------
+Well. I just finished the basic application. Now I want to give the capacity to
+choose the language that my program will use to run.
+
+In this video I'll bring the translation module.
+
+I already did this in C project. I'll take advantage from its implementation.
+
+I put the default translation and I refactored the task using display trait.

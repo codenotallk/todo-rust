@@ -1,4 +1,4 @@
-use std::sync::Mutex;
+use std::{fmt::Display, sync::Mutex};
 
 use serde::{Deserialize, Serialize};
 
@@ -12,6 +12,16 @@ pub struct Task {
 
 lazy_static::lazy_static! {
     static ref DYNAMIC_ID: Mutex <u32> = Mutex::new(0);
+}
+
+impl Display for Task {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "{}. [{}] - {} - {}",
+                self.id,
+                if self.done == true { 'X' } else { ' ' },
+                self.name,
+                self.description)
+    }
 }
 
 impl Task {

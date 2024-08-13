@@ -12,6 +12,7 @@ mod prompt;
 mod reader;
 mod task;
 mod task_manager;
+mod translation;
 
 #[derive(Clone)]
 struct App;

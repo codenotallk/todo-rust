@@ -80,13 +80,7 @@ impl ActionManger {
 
     fn display(&mut self, _args: ActionArgs, display: &dyn DisplayMessage) -> bool {
         self.manager.get_tasks().iter().for_each(|task| {
-            let message = format!(
-                "{}. [{}] - {} - {}\n",
-                task.id,
-                if task.done == true { 'X' } else { ' ' },
-                task.name,
-                task.description
-            );
+            let message = format!("{}", task);
 
             display.show(message);
         });
