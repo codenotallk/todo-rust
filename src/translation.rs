@@ -1,22 +1,27 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fs};
+
+use serde_json::Value;
 
 pub struct Translation {
     tokens: HashMap<&'static str, String>,
 }
 
 impl Translation {
-    pub fn new() -> Self {
-        Self {
-            tokens: Translation::load_default(),
+    pub fn new(file: Option<&str>) -> Self {
+        let mut tokens = Translation::load_default();
+
+        if let Some(file) = file {
+            tokens = Translation::load_file(file, tokens);
         }
+
+        Self { tokens }
     }
 
-    pub fn get_message (&self, token: &'static str) -> String {
+    pub fn get_message(&self, token: &'static str) -> String {
         self.tokens.get(token).unwrap().clone()
     }
 
     fn load_default() -> HashMap<&'static str, String> {
-
         let mut tokens: HashMap<&'static str, String> = HashMap::new();
 
         tokens.insert("error.command", "Invalid command\n\n".to_owned());
@@ -40,7 +45,10 @@ impl Translation {
             "Please. Type a valid ID number.\n\n".to_owned(),
         );
 
-        tokens.insert("question.overwrite", "Would you like to overwrite? (yes/no): ".to_owned());
+        tokens.insert(
+            "question.overwrite",
+            "Would you like to overwrite? (yes/no): ".to_owned(),
+        );
         tokens.insert(
             "question.modification",
             "You have did some modifications. Do you want to quit anyway? (yes/no): ".to_owned(),
@@ -103,5 +111,30 @@ impl Translation {
         tokens.insert("menu.exit", "Exit     To quit application\n\n".to_owned());
 
         tokens
+    }
+
+    fn load_file(
+        file: &str,
+        tokens: HashMap<&'static str, String>,
+    ) -> HashMap<&'static str, String> {
+        let mut __tokens = tokens;
+
+        match fs::read_to_string(file) {
+            Ok(data) => {
+                let value: Value = serde_json::from_str(&data).expect("Invalid JSON");
+
+                let map: HashMap<String, String> =
+                    serde_json::from_value(value).expect("Cannot convert JSON into HashMap");
+
+                for (key, value) in &map {
+                    if let Some(__value) = __tokens.get_mut(key.as_str()) {
+                        *__value = value.clone();
+                    }
+                }
+            }
+            Err(_) => todo!(),
+        }
+
+        __tokens
     }
 }

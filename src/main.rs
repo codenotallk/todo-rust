@@ -1,4 +1,7 @@
-use std::io::{self, Write};
+use std::{
+    env,
+    io::{self, Write},
+};
 
 use display::DisplayMessage;
 use prompt::Prompt;
@@ -40,7 +43,15 @@ impl Reader for App {
 fn main() {
     let app = App;
 
-    let mut prompt = Prompt::new(Box::new(app.clone()), Box::new(app.clone()));
+    let args: Vec<String> = env::args().collect();
+
+    let mut file = None;
+
+    if args.len() > 1 {
+        file = Some(args[1].as_str());
+    }
+
+    let mut prompt = Prompt::new(file, Box::new(app.clone()), Box::new(app.clone()));
 
     prompt.run();
 }

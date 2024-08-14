@@ -43,3 +43,13 @@ In this video I'll bring the translation module.
 I already did this in C project. I'll take advantage from its implementation.
 
 I put the default translation and I refactored the task using display trait.
+
+I have forgot to add the translate to the menu.
+
+Now I can load a translation file from another language. I already did in C.
+I'll just take the file and paste here.
+
+First I'll load default.
+Now using the file.
+
+Now the application can be translated to another language. That's it.

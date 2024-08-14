@@ -16,11 +16,14 @@ lazy_static::lazy_static! {
 
 impl Display for Task {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "{}. [{}] - {} - {}",
-                self.id,
-                if self.done == true { 'X' } else { ' ' },
-                self.name,
-                self.description)
+        writeln!(
+            f,
+            "{}. [{}] - {} - {}",
+            self.id,
+            if self.done == true { 'X' } else { ' ' },
+            self.name,
+            self.description
+        )
     }
 }
 

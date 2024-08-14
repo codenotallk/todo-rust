@@ -7,7 +7,8 @@ use crate::{
     action_manager::ActionManger,
     display::DisplayMessage,
     menu::{menu_logo, menu_show},
-    reader::Reader, translation::Translation,
+    reader::Reader,
+    translation::Translation,
 };
 
 type CommandHandler = fn(&mut Prompt);
@@ -30,7 +31,11 @@ enum Style {
 }
 
 impl Prompt {
-    pub fn new(display: Box<dyn DisplayMessage>, reader: Box<dyn Reader>) -> Self {
+    pub fn new(
+        file: Option<&str>,
+        display: Box<dyn DisplayMessage>,
+        reader: Box<dyn Reader>,
+    ) -> Self {
         Self {
             display,
             reader,
@@ -38,7 +43,7 @@ impl Prompt {
             run: true,
             action_manager: ActionManger::new(),
             modifications: false,
-            translation: Translation::new(),
+            translation: Translation::new(file),
         }
     }
 
@@ -58,7 +63,7 @@ impl Prompt {
 
     pub fn run(&mut self) {
         let logo = menu_logo();
-        let menu = menu_show();
+        let menu = menu_show(&self.translation);
 
         while self.run {
             self.print(logo.as_str(), Style::Fancy);
@@ -84,12 +89,15 @@ impl Prompt {
         self.read().to_lowercase()
     }
 
-    fn process_command(&mut self, command: &str){
+    fn process_command(&mut self, command: &str) {
         match self.commands.get(&command) {
             Some(f) => {
                 f(self);
             }
-            None => self.print (self.translation.get_message("error.command").as_str(), Style::Error),
+            None => self.print(
+                self.translation.get_message("error.command").as_str(),
+                Style::Error,
+            ),
         }
     }
 
@@ -99,7 +107,10 @@ impl Prompt {
         if self.wanna_proceed(self.translation.get_message("question.task.add").as_str()) == true {
             if self.action_manager.process(args, &*self.display) == true {
                 self.modifications = true;
-                self.print(self.translation.get_message("success.task.add").as_str(), Style::Success);
+                self.print(
+                    self.translation.get_message("success.task.add").as_str(),
+                    Style::Success,
+                );
             }
         }
     }
@@ -110,24 +121,36 @@ impl Prompt {
 
             let input = self.read();
 
-            match input.as_str() {                
+            match input.as_str() {
                 "yes" => return true,
                 "no" => {
-                    self.print(self.translation.get_message("error.canceled").as_str(), Style::Error);
+                    self.print(
+                        self.translation.get_message("error.canceled").as_str(),
+                        Style::Error,
+                    );
                     return false;
                 }
                 _ => {
-                    self.print(self.translation.get_message("error.option").as_str(), Style::Error);
+                    self.print(
+                        self.translation.get_message("error.option").as_str(),
+                        Style::Error,
+                    );
                 }
             }
         }
     }
 
     fn get_args(&mut self) -> ActionArgsBuilder {
-        self.print(self.translation.get_message("task.name").as_str(), Style::Default);
+        self.print(
+            self.translation.get_message("task.name").as_str(),
+            Style::Default,
+        );
         let name = self.read();
 
-        self.print(self.translation.get_message("task.description").as_str(), Style::Default);
+        self.print(
+            self.translation.get_message("task.description").as_str(),
+            Style::Default,
+        );
         let description = self.read();
 
         ActionArgsBuilder::new()
@@ -149,12 +172,23 @@ impl Prompt {
                     .with_first(id)
                     .build();
 
-                if self.wanna_proceed(self.translation.get_message("question.task.remove").as_str()) == true {
+                if self.wanna_proceed(
+                    self.translation
+                        .get_message("question.task.remove")
+                        .as_str(),
+                ) == true
+                {
                     if self.action_manager.process(args, &*self.display) == true {
-                        self.print(self.translation.get_message("success.task.remove").as_str(), Style::Success);
+                        self.print(
+                            self.translation.get_message("success.task.remove").as_str(),
+                            Style::Success,
+                        );
                         self.modifications = true;
                     } else {
-                        self.print(self.translation.get_message("error.task.remove").as_str(), Style::Error);
+                        self.print(
+                            self.translation.get_message("error.task.remove").as_str(),
+                            Style::Error,
+                        );
                     }
                 }
             }
@@ -170,7 +204,10 @@ impl Prompt {
 
             match input.as_str() {
                 "exit" => {
-                    self.print(self.translation.get_message("error.canceled").as_str(), Style::Error);
+                    self.print(
+                        self.translation.get_message("error.canceled").as_str(),
+                        Style::Error,
+                    );
                     return None;
                 }
 
@@ -178,7 +215,10 @@ impl Prompt {
                     true => {
                         return Some(input);
                     }
-                    false => self.print(self.translation.get_message("error.task.id").as_str(), Style::Error),
+                    false => self.print(
+                        self.translation.get_message("error.task.id").as_str(),
+                        Style::Error,
+                    ),
                 },
             }
         }
@@ -193,12 +233,23 @@ impl Prompt {
                     .with_third(id)
                     .build();
 
-                if self.wanna_proceed(self.translation.get_message("question.task.update").as_str()) == true {
+                if self.wanna_proceed(
+                    self.translation
+                        .get_message("question.task.update")
+                        .as_str(),
+                ) == true
+                {
                     if self.action_manager.process(args, &*self.display) == true {
-                        self.print(self.translation.get_message("success.task.update").as_str(), Style::Success);
+                        self.print(
+                            self.translation.get_message("success.task.update").as_str(),
+                            Style::Success,
+                        );
                         self.modifications = true;
                     } else {
-                        self.print(self.translation.get_message("error.task.update").as_str(), Style::Error);
+                        self.print(
+                            self.translation.get_message("error.task.update").as_str(),
+                            Style::Error,
+                        );
                     }
                 }
             }
@@ -214,12 +265,25 @@ impl Prompt {
                     .with_first(id)
                     .build();
 
-                if self.wanna_proceed(self.translation.get_message("question.task.complete").as_str()) == true {
+                if self.wanna_proceed(
+                    self.translation
+                        .get_message("question.task.complete")
+                        .as_str(),
+                ) == true
+                {
                     if self.action_manager.process(args, &*self.display) == true {
-                        self.print(self.translation.get_message("success.task.complete").as_str(), Style::Success);
+                        self.print(
+                            self.translation
+                                .get_message("success.task.complete")
+                                .as_str(),
+                            Style::Success,
+                        );
                         self.modifications = true;
                     } else {
-                        self.print(self.translation.get_message("error.task.complete").as_str(), Style::Error);
+                        self.print(
+                            self.translation.get_message("error.task.complete").as_str(),
+                            Style::Error,
+                        );
                     }
                 }
             }
@@ -229,7 +293,8 @@ impl Prompt {
 
     fn command_save(&mut self) {
         if self.modifications == true
-            && self.wanna_proceed(self.translation.get_message("question.overwrite").as_str()) == true
+            && self.wanna_proceed(self.translation.get_message("question.overwrite").as_str())
+                == true
         {
             let args = ActionArgs::new("save");
 
@@ -242,8 +307,11 @@ impl Prompt {
     fn command_exit(&mut self) {
         if self.modifications == false {
             self.run = false;
-        } else if self.wanna_proceed(self.translation.get_message("question.modification").as_str())
-            == true
+        } else if self.wanna_proceed(
+            self.translation
+                .get_message("question.modification")
+                .as_str(),
+        ) == true
         {
             self.run = false;
         }

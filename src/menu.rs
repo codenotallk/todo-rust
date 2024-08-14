@@ -1,28 +1,26 @@
+use crate::translation::Translation;
+
 pub fn menu_logo() -> String {
-    let logo = r#"
+    r#"
   _____        _       _    _    _   
  |_   _|__  __| |___  | |  (_)__| |_ 
    | |/ _ \/ _` / _ \ | |__| (_-<  _|
    |_|\___/\__,_\___/ |____|_/__/\__|
                                          
     
-    "#
-    .to_string();
-    logo
+"#
+    .to_string()
 }
 
-pub fn menu_show() -> String {
-    let options = r#"
-Add      To add a new item
-Remove   To remove a  item
-Update   To update a  item
-Display  To display items
-Complete To mark item as complete
-Save     To save the modifications
-Exit     To quit application
-
-"#
-    .to_string();
-
-    options
+pub fn menu_show(translation: &Translation) -> String {
+    format!(
+        "{}{}{}{}{}{}{}",
+        translation.get_message("menu.add"),
+        translation.get_message("menu.remove"),
+        translation.get_message("menu.update"),
+        translation.get_message("menu.display"),
+        translation.get_message("menu.complete"),
+        translation.get_message("menu.save"),
+        translation.get_message("menu.exit")
+    )
 }
