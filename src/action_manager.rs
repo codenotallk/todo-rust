@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    action_args::ActionArgs, display::DisplayMessage, task::Task, task_manager::TaskManager,
+    action_args::ActionArgs, display::DisplayMessage, repository::Repository, task_manager::TaskManager
 };
 
 type ActionHandler =
@@ -10,14 +10,20 @@ type ActionHandler =
 pub struct ActionManger {
     actions: HashMap<&'static str, ActionHandler>,
     manager: TaskManager,
+    repository: Box <dyn Repository>,
 }
 
 impl ActionManger {
-    pub fn new() -> Self {
-        Self {
+    pub fn new(repository: Box <dyn Repository>) -> Self {
+        let mut action_manager = Self {
             actions: Self::actions_mapper(),
-            manager: Self::load(),
-        }
+            manager: TaskManager::new(),
+            repository
+        };
+
+        action_manager.load();
+
+        action_manager
     }
 
     pub fn process(&mut self, args: ActionArgs, display: &dyn DisplayMessage) -> bool {
@@ -49,26 +55,12 @@ impl ActionManger {
         actions
     }
 
-    fn load() -> TaskManager {
-        let mut task_manager = TaskManager::new();
+    fn load(&mut self) {
 
-        match std::fs::OpenOptions::new()
-            .write(true)
-            .create(true)
-            .read(true)
-            .open("tasks.json")
-        {
-            Ok(file) => {
-                let tasks: Vec<Task> = match serde_json::from_reader(file) {
-                    Ok(tasks) => tasks,
-                    Err(e) => panic!("An error occurred: {}", e),
-                };
+        let tasks = self.repository.load();
 
-                task_manager.set_tasks(tasks);
-                task_manager
-            }
-            Err(_) => TaskManager::new(),
-        }
+        self.manager.set_tasks(tasks);
+        
     }
 
     fn add(&mut self, args: ActionArgs, _display: &dyn DisplayMessage) -> bool {
@@ -109,19 +101,7 @@ impl ActionManger {
     }
 
     fn save(&mut self, _args: ActionArgs, _display: &dyn DisplayMessage) -> bool {
-        let file = std::fs::OpenOptions::new()
-            .write(true)
-            .create(true)
-            .truncate(true)
-            .open("tasks.json");
-
-        match file {
-            Ok(file) => {
-                serde_json::to_writer_pretty(file, &self.manager.get_tasks()).unwrap();
-                true
-            }
-
-            Err(_) => false,
-        }
+        
+        self.repository.save(self.manager.get_tasks_store ())
     }
 }

@@ -3,12 +3,7 @@ use std::collections::HashMap;
 use colored::Colorize;
 
 use crate::{
-    action_args::{ActionArgs, ActionArgsBuilder},
-    action_manager::ActionManger,
-    display::DisplayMessage,
-    menu::{menu_logo, menu_show},
-    reader::Reader,
-    translation::Translation,
+    action_args::{ActionArgs, ActionArgsBuilder}, action_manager::ActionManger, display::DisplayMessage, menu::{menu_logo, menu_show}, reader::Reader, repository::Repository, translation::Translation
 };
 
 type CommandHandler = fn(&mut Prompt);
@@ -35,13 +30,14 @@ impl Prompt {
         file: Option<&str>,
         display: Box<dyn DisplayMessage>,
         reader: Box<dyn Reader>,
+        repository: Box <dyn Repository>
     ) -> Self {
         Self {
             display,
             reader,
             commands: Self::commands_mapper(),
             run: true,
-            action_manager: ActionManger::new(),
+            action_manager: ActionManger::new(repository),
             modifications: false,
             translation: Translation::new(file),
         }

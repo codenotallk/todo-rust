@@ -1,8 +1,6 @@
 use std::{fmt::Display, sync::Mutex};
 
-use serde::{Deserialize, Serialize};
-
-#[derive(Serialize, Deserialize)]
+#[derive(Clone)]
 pub struct Task {
     pub id: u32,
     pub name: String,

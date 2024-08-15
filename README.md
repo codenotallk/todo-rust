@@ -53,3 +53,9 @@ First I'll load default.
 Now using the file.
 
 Now the application can be translated to another language. That's it.
+
+In this video I'll try to remove the storage from inside the application
+That way I can choose how I'll store the data. If it will be in the file.
+Or a database like SQLite.
+
+Now if I want to user another storege I can. That's it.
