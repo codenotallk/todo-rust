@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 
 use crate::{
-    action_args::ActionArgs, display::DisplayMessage, repository::Repository, task_manager::TaskManager
+    action_args::ActionArgs, display::DisplayMessage, repository::Repository,
+    task_manager::TaskManager,
 };
 
 type ActionHandler =
@@ -10,15 +11,15 @@ type ActionHandler =
 pub struct ActionManger {
     actions: HashMap<&'static str, ActionHandler>,
     manager: TaskManager,
-    repository: Box <dyn Repository>,
+    repository: Box<dyn Repository>,
 }
 
 impl ActionManger {
-    pub fn new(repository: Box <dyn Repository>) -> Self {
+    pub fn new(repository: Box<dyn Repository>) -> Self {
         let mut action_manager = Self {
             actions: Self::actions_mapper(),
             manager: TaskManager::new(),
-            repository
+            repository,
         };
 
         action_manager.load();
@@ -56,11 +57,9 @@ impl ActionManger {
     }
 
     fn load(&mut self) {
-
         let tasks = self.repository.load();
 
         self.manager.set_tasks(tasks);
-        
     }
 
     fn add(&mut self, args: ActionArgs, _display: &dyn DisplayMessage) -> bool {
@@ -101,7 +100,75 @@ impl ActionManger {
     }
 
     fn save(&mut self, _args: ActionArgs, _display: &dyn DisplayMessage) -> bool {
-        
-        self.repository.save(self.manager.get_tasks_store ())
+        self.repository.save(self.manager.get_tasks_store())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{action_args::ActionArgsBuilder, display::DisplayMessage, repository::Repository};
+
+    use super::ActionManger;
+
+    #[derive(Clone)]
+    struct Test;
+
+    impl Repository for Test {
+        fn save(&mut self, _tasks: Vec<crate::task::Task>) -> bool {
+            true
+        }
+
+        fn load(&mut self) -> Vec<crate::task::Task> {
+            Vec::new()
+        }
+    }
+
+    impl DisplayMessage for Test {
+        fn show(&self, _message: String) {}
+    }
+
+    #[test]
+    fn test_add() {
+        let test = Test;
+
+        let args = ActionArgsBuilder::new()
+            .with_command("add")
+            .with_first("Test".to_string())
+            .with_second("Description".to_string())
+            .build();
+
+        let mut action_manager = ActionManger::new(Box::new (test.clone()));
+
+        assert_eq!(action_manager.process(args, &test), true);
+    }
+
+    #[test]
+    fn test_add_name_empty() {
+        let test = Test;
+
+        let args = ActionArgsBuilder::new()
+            .with_command("add")
+            .with_first("".to_string())
+            .with_second("Description".to_string())
+            .build();
+
+        let mut action_manager = ActionManger::new(Box::new (test.clone()));
+
+        assert_eq!(action_manager.process(args, &test), false);
+    }
+
+    #[test]
+    fn test_add_description_empty() {
+        let test = Test;
+
+        let args = ActionArgsBuilder::new()
+            .with_command("add")
+            .with_first("Test".to_string())
+            .with_second("".to_string())
+            .build();
+
+        let mut action_manager = ActionManger::new(Box::new (test.clone()));
+
+        assert_eq!(action_manager.process(args, &test), false);
     }
 }

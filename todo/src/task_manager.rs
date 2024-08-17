@@ -64,7 +64,7 @@ impl TaskManager {
         &self.tasks
     }
 
-    pub fn get_tasks_store (&self) -> Vec<Task> {
+    pub fn get_tasks_store(&self) -> Vec<Task> {
         self.tasks.clone()
     }
 

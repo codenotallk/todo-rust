@@ -59,3 +59,11 @@ That way I can choose how I'll store the data. If it will be in the file.
 Or a database like SQLite.
 
 Now if I want to user another storege I can. That's it.
+
+Now I'll split the project into todo library (crate) and a application
+For that I'll use workspace.
+First I'll create two projects.
+
+Working as before. Now I'll add some tests.
+
+Now I can test the application and add new binaries to use todo crate. That's it.
